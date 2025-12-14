@@ -8,11 +8,12 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/health",
+      "dest": "buho-proxy-server.js"
+    },
+    {
+      "src": "/api/(.*)",
       "dest": "buho-proxy-server.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
