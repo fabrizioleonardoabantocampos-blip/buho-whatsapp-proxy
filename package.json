@@ -1,7 +1,7 @@
 {
   "name": "buho-whatsapp-proxy",
   "version": "1.0.0",
-  "description": "Proxy para Búho WhatsApp API",
+  "description": "Proxy para Búho WhatsApp API con manejo de certificados SSL",
   "main": "buho-proxy-server.js",
   "scripts": {
     "start": "node buho-proxy-server.js"
@@ -11,6 +11,6 @@
     "cors": "^2.8.5"
   },
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   }
 }
