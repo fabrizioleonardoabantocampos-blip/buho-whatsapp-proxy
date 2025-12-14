@@ -1,29 +1,16 @@
 {
   "name": "buho-whatsapp-proxy",
   "version": "1.0.0",
-  "description": "Servidor proxy para Búho WhatsApp API - Solución SSL",
+  "description": "Proxy para Búho WhatsApp API",
   "main": "buho-proxy-server.js",
   "scripts": {
-    "start": "node buho-proxy-server.js",
-    "dev": "nodemon buho-proxy-server.js"
+    "start": "node buho-proxy-server.js"
   },
-  "keywords": [
-    "whatsapp",
-    "proxy",
-    "buho",
-    "ssl"
-  ],
-  "author": "AssistComp CRM",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "node-fetch": "^3.3.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
+    "cors": "^2.8.5"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "18.x"
   }
 }
