@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "buho-proxy-server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "buho-proxy-server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
