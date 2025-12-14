@@ -5,7 +5,6 @@
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
-const http = require('http');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +24,66 @@ const httpsAgent = new https.Agent({
 });
 
 const BUHO_BASE_URL = 'https://eliascoronado.qr.buho.la';
+
+// Función helper para hacer peticiones HTTPS
+function makeRequest(url, options, body) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    
+    const reqOptions = {
+      hostname: urlObj.hostname,
+      port: urlObj.port || 443,
+      path: urlObj.pathname + urlObj.search,
+      method: options.method || 'POST',
+      headers: options.headers,
+      agent: httpsAgent,
+    };
+
+    console.log('🔵 Haciendo petición a:', url);
+    console.log('🔵 Headers:', JSON.stringify(options.headers, null, 2));
+    console.log('🔵 Body:', JSON.stringify(body, null, 2));
+
+    const req = https.request(reqOptions, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        console.log(`🔵 Status: ${res.statusCode}`);
+        console.log(`🔵 Respuesta raw (primeros 500 chars):`, data.substring(0, 500));
+        
+        try {
+          const jsonData = JSON.parse(data);
+          console.log('✅ JSON parseado correctamente');
+          resolve({ status: res.statusCode, data: jsonData });
+        } catch (e) {
+          console.log('⚠️ No es JSON válido, devolviendo raw');
+          resolve({ 
+            status: res.statusCode, 
+            data: { 
+              error: 'Respuesta no es JSON',
+              raw: data.substring(0, 1000),
+              parseError: e.message
+            } 
+          });
+        }
+      });
+    });
+
+    req.on('error', (error) => {
+      console.error('🔴 Error en request:', error);
+      reject(error);
+    });
+
+    if (body) {
+      req.write(JSON.stringify(body));
+    }
+    
+    req.end();
+  });
+}
 
 // Health check
 app.get('/health', (req, res) => {
@@ -47,22 +106,24 @@ app.post('/api/mensaje/enviar-texto', async (req, res) => {
 
     console.log(`📤 Proxy: Enviando texto a ${numero}`);
 
-    const fetch = (await import('node-fetch')).default;
-    const response = await fetch(`${BUHO_BASE_URL}/api/mensaje/enviar-texto`, {
-      method: 'POST',
+    const response = await makeRequest(`${BUHO_BASE_URL}/api/mensaje/enviar-texto`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'User-Agent': 'AssistComp-Proxy/1.0'
-      },
-      body: JSON.stringify({ numero, mensaje }),
-      agent: httpsAgent // Usa el agente que ignora SSL
-    });
+      }
+    }, { numero, mensaje });
 
-    const data = await response.json();
-    console.log(`✅ Proxy: Mensaje enviado exitosamente`);
-    
-    res.json(data);
+    if (response.status >= 200 && response.status < 300) {
+      console.log(`✅ Proxy: Mensaje enviado exitosamente`);
+      res.json(response.data);
+    } else {
+      console.error('❌ Proxy Error:', response.data);
+      res.status(response.status).json({ 
+        error: 'Error en el proxy',
+        details: response.data 
+      });
+    }
   } catch (error) {
     console.error('❌ Proxy Error:', error);
     res.status(500).json({ 
@@ -84,22 +145,24 @@ app.post('/api/mensaje/enviar/pdf', async (req, res) => {
 
     console.log(`📤 Proxy: Enviando PDF a ${numero} - ${nombreArchivo}`);
 
-    const fetch = (await import('node-fetch')).default;
-    const response = await fetch(`${BUHO_BASE_URL}/api/mensaje/enviar/pdf`, {
-      method: 'POST',
+    const response = await makeRequest(`${BUHO_BASE_URL}/api/mensaje/enviar/pdf`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'User-Agent': 'AssistComp-Proxy/1.0'
-      },
-      body: JSON.stringify({ numero, mensaje, archivo, nombreArchivo }),
-      agent: httpsAgent
-    });
+      }
+    }, { numero, mensaje, archivo, nombreArchivo });
 
-    const data = await response.json();
-    console.log(`✅ Proxy: PDF enviado exitosamente`);
-    
-    res.json(data);
+    if (response.status >= 200 && response.status < 300) {
+      console.log(`✅ Proxy: PDF enviado exitosamente`);
+      res.json(response.data);
+    } else {
+      console.error('❌ Proxy Error:', response.data);
+      res.status(response.status).json({ 
+        error: 'Error en el proxy',
+        details: response.data 
+      });
+    }
   } catch (error) {
     console.error('❌ Proxy Error:', error);
     res.status(500).json({ 
@@ -121,22 +184,24 @@ app.post('/api/mensaje/enviar-medios', async (req, res) => {
 
     console.log(`📤 Proxy: Enviando ${media} a ${numero}`);
 
-    const fetch = (await import('node-fetch')).default;
-    const response = await fetch(`${BUHO_BASE_URL}/api/mensaje/enviar-medios`, {
-      method: 'POST',
+    const response = await makeRequest(`${BUHO_BASE_URL}/api/mensaje/enviar-medios`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'User-Agent': 'AssistComp-Proxy/1.0'
-      },
-      body: JSON.stringify({ numero, media, caption, enlace }),
-      agent: httpsAgent
-    });
+      }
+    }, { numero, media, caption, enlace });
 
-    const data = await response.json();
-    console.log(`✅ Proxy: Media enviado exitosamente`);
-    
-    res.json(data);
+    if (response.status >= 200 && response.status < 300) {
+      console.log(`✅ Proxy: Media enviado exitosamente`);
+      res.json(response.data);
+    } else {
+      console.error('❌ Proxy Error:', response.data);
+      res.status(response.status).json({ 
+        error: 'Error en el proxy',
+        details: response.data 
+      });
+    }
   } catch (error) {
     console.error('❌ Proxy Error:', error);
     res.status(500).json({ 
